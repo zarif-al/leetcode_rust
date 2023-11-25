@@ -127,7 +127,7 @@ mod tests {
         assert_eq!(result, solution)
     }
 
-    // #[test]
+    #[test]
     fn test_case_2() {
         let l1 = array_to_linked_list(vec![9]);
         let l2 = array_to_linked_list(vec![1, 9, 9, 9, 9, 9, 9, 9, 9, 9]);
