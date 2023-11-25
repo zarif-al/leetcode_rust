@@ -1,10 +1,9 @@
 #![allow(dead_code)]
-
-use std::{collections::HashMap, vec};
-
 /**
  *  Problem Link: @see https://leetcode.com/problems/two-sum/
  */
+use std::{collections::HashMap, vec};
+
 pub fn solution(nums: Vec<i32>, target: i32) -> Vec<i32> {
     // Create a map to store index of numbers.
     let mut arg_map: HashMap<i32, i32> = HashMap::new();
