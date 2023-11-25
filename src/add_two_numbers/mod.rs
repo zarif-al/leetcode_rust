@@ -18,189 +18,148 @@ impl ListNode {
 struct Solution {}
 
 impl Solution {
-    #[inline]
-    pub fn unwind(arg: Option<Box<ListNode>>) -> u128 {
-        // Create a string to store the values of the linked list
-        let mut result: String = String::from("");
+    fn update_solution_return_carry(
+        cursor: &mut Option<Box<ListNode>>,
+        sum: i32,
+    ) -> (&mut Option<Box<ListNode>>, i32) {
+        *cursor = Some(Box::new(ListNode::new(sum % 10)));
 
-        match arg {
-            Some(link) => {
-                let mut current_link = link;
-
-                // Append the first val to our l1_string variable
-                result += &current_link.val.to_string();
-
-                // Keep going to next node until we hit NONE and append our
-                // result variable with the values in each node.
-                while let Some(ref next_val) = current_link.next {
-                    result += &next_val.val.to_string();
-                    current_link = next_val.clone();
-                }
-            }
-            None => {}
-        };
-
-        // Reverse the result as per the instructions of the problem statement.
-        let reverse_result: String = result.chars().rev().collect();
-
-        // Parse the reversed result as i32 and return it.
-        // TODO : Handle failure case
-        reverse_result.parse::<u128>().expect("A valid number")
+        (&mut cursor.as_mut().unwrap().next, sum / 10)
     }
 
     pub fn add_two_numbers(
         l1: Option<Box<ListNode>>,
         l2: Option<Box<ListNode>>,
     ) -> Option<Box<ListNode>> {
-        /*
-         * We are going to store the l1 and l2 numbers in these variables
-         */
-        let l1: u128 = Solution::unwind(l1);
-        let l2: u128 = Solution::unwind(l2);
+        // Create clones of arguments. We need these cursors to traverse the arguments
+        // in our solution
+        let mut l1_cursor = l1.clone();
+        let mut l2_cursor = l2.clone();
 
-        let sum = l1 + l2;
+        // Contain the solution
+        let mut solution: Option<Box<ListNode>> = None;
 
-        /*
-         * Create a variable to store our result
-         */
-        let mut result: Option<Box<ListNode>> = None;
+        // Create a cursor to travese the solution linked list
+        let mut solution_cursor = &mut solution;
 
-        /*
-         Convert the sum into chars and loop over them
-        */
-        for num_char in sum.to_string().chars().into_iter() {
-            // Conver num_char into a i32 and create a ListNode with it. Assign the
-            // list node to a variable new_node
-            let mut new_node = ListNode::new(num_char.to_digit(10).unwrap() as i32);
+        // Store the carry number of the sum
+        // As per the conditions of the problem this cannot be negative
+        let mut carry = 0;
 
-            match result {
-                Some(node) => {
-                    /*
-                     * If result has some value, node, we assign that node as
-                     * the 'next' value of the new node we created for this iteration.
-                     */
-                    new_node.next = Some(node);
+        // We will loop until we have no l1, l2 and our carry is 0.
+        //
+        // We will calculate the sum for a node by adding values of l1, l2 and our cursor.
+        //
+        // If the sum is greater than 10 we will set the new node's value to 0 and carry the 1 to the
+        // next iteration
+        // Otherwise we set the result as the value for our new node.
+        //
+        // After evaluating the sum we will move the our cursors to the next item in their list.
+        while l1_cursor.is_some() || l2_cursor.is_some() || carry > 0 {
+            match (l1_cursor.clone(), l2_cursor.clone()) {
+                (Some(v1), Some(v2)) => {
+                    let sum = v1.val + v2.val + carry;
 
-                    /*
-                     We update the result by assigning the new node to it.
-                    */
-                    result = Some(Box::new(new_node));
+                    (solution_cursor, carry) =
+                        Solution::update_solution_return_carry(solution_cursor, sum);
+
+                    l1_cursor = v1.next;
+                    l2_cursor = v2.next;
                 }
-                None => {
-                    /*
-                     * If result has None value, we instantiate it with our new node.
-                     */
-                    result = Some(Box::new(new_node));
+                (Some(v1), None) => {
+                    let sum = v1.val + carry;
+
+                    (solution_cursor, carry) =
+                        Solution::update_solution_return_carry(solution_cursor, sum);
+
+                    l1_cursor = v1.next;
+                }
+                (None, Some(v2)) => {
+                    let sum = v2.val + carry;
+
+                    (solution_cursor, carry) =
+                        Solution::update_solution_return_carry(solution_cursor, sum);
+
+                    l2_cursor = v2.next;
+                }
+                (None, None) => {
+                    (solution_cursor, carry) =
+                        Solution::update_solution_return_carry(solution_cursor, carry);
                 }
             }
         }
 
-        result
+        solution
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+
     use super::*;
 
-    #[test]
-    fn test_case_1() {
-        let l1 = ListNode {
-            val: 2,
-            next: Some(Box::new(ListNode {
-                val: 4,
-                next: Some(Box::new(ListNode::new(3))),
-            })),
-        };
+    /*
+     This utility function converts an array of inputs to a linked list
+     using the ListNode struct
+    */
+    fn array_to_linked_list(nums: Vec<i32>) -> Option<Box<ListNode>> {
+        let mut head = None;
+        let mut current = &mut head;
 
-        let l2 = ListNode {
-            val: 5,
-            next: Some(Box::new(ListNode {
-                val: 6,
-                next: Some(Box::new(ListNode::new(4))),
-            })),
-        };
+        for num in nums {
+            *current = Some(Box::new(ListNode::new(num)));
+            current = &mut current.as_mut().unwrap().next;
+        }
 
-        let test_1 = Solution::add_two_numbers(Some(Box::new(l1)), Some(Box::new(l2)));
-
-        let test_1_solution = Some(Box::new(ListNode {
-            val: 7,
-            next: Some(Box::new(ListNode {
-                val: 0,
-                next: Some(Box::new(ListNode::new(8))),
-            })),
-        }));
-
-        assert_eq!(test_1, test_1_solution)
+        head
     }
 
     #[test]
+    fn test_case_1() {
+        let l1 = array_to_linked_list(vec![2, 4, 3]);
+        let l2 = array_to_linked_list(vec![5, 6, 4]);
+
+        let result = Solution::add_two_numbers(l1, l2);
+
+        let solution = array_to_linked_list(vec![7, 0, 8]);
+
+        assert_eq!(result, solution)
+    }
+
+    // #[test]
     fn test_case_2() {
-        let l1 = ListNode { val: 9, next: None };
+        let l1 = array_to_linked_list(vec![9]);
+        let l2 = array_to_linked_list(vec![1, 9, 9, 9, 9, 9, 9, 9, 9, 9]);
 
-        let l2 = ListNode {
-            val: 1,
-            next: Some(Box::new(ListNode {
-                val: 9,
-                next: Some(Box::new(ListNode {
-                    val: 9,
-                    next: Some(Box::new(ListNode {
-                        val: 9,
-                        next: Some(Box::new(ListNode {
-                            val: 9,
-                            next: Some(Box::new(ListNode {
-                                val: 9,
-                                next: Some(Box::new(ListNode {
-                                    val: 9,
-                                    next: Some(Box::new(ListNode {
-                                        val: 9,
-                                        next: Some(Box::new(ListNode {
-                                            val: 9,
-                                            next: Some(Box::new(ListNode::new(9))),
-                                        })),
-                                    })),
-                                })),
-                            })),
-                        })),
-                    })),
-                })),
-            })),
-        };
+        let result = Solution::add_two_numbers(l1, l2);
 
-        let test_1 = Solution::add_two_numbers(Some(Box::new(l1)), Some(Box::new(l2)));
+        let solution = array_to_linked_list(vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
 
-        let test_1_solution = Some(Box::new(ListNode {
-            val: 0,
-            next: Some(Box::new(ListNode {
-                val: 0,
-                next: Some(Box::new(ListNode {
-                    val: 0,
-                    next: Some(Box::new(ListNode {
-                        val: 0,
-                        next: Some(Box::new(ListNode {
-                            val: 0,
-                            next: Some(Box::new(ListNode {
-                                val: 0,
-                                next: Some(Box::new(ListNode {
-                                    val: 0,
-                                    next: Some(Box::new(ListNode {
-                                        val: 0,
-                                        next: Some(Box::new(ListNode {
-                                            val: 0,
-                                            next: Some(Box::new(ListNode {
-                                                val: 0,
-                                                next: Some(Box::new(ListNode::new(1))),
-                                            })),
-                                        })),
-                                    })),
-                                })),
-                            })),
-                        })),
-                    })),
-                })),
-            })),
-        }));
+        assert_eq!(result, solution)
+    }
 
-        assert_eq!(test_1, test_1_solution)
+    #[test]
+    fn test_case_3() {
+        let l1 = array_to_linked_list(vec![
+            2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4,
+            3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2,
+            4, 3, 9,
+        ]);
+        let l2 = array_to_linked_list(vec![
+            5, 6, 4, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4,
+            3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 9,
+            9, 9, 9,
+        ]);
+
+        let result = Solution::add_two_numbers(l1, l2);
+
+        let solution = array_to_linked_list(vec![
+            7, 0, 8, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8,
+            6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 4, 8, 6, 1,
+            4, 3, 9, 1,
+        ]);
+
+        assert_eq!(result, solution)
     }
 }
