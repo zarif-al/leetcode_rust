@@ -13,43 +13,13 @@ impl ListNode {
     pub fn new(val: i32) -> Self {
         ListNode { next: None, val }
     }
-
-    #[inline]
-    pub fn unwind(arg: Option<Box<ListNode>>) -> i64 {
-        // Create a string to store the values of the linked list
-        let mut result: String = String::from("");
-
-        match arg {
-            Some(link) => {
-                let mut current_link = link;
-
-                // Append the first val to our l1_string variable
-                result += &current_link.val.to_string();
-
-                // Keep going to next node until we hit NONE and append our
-                // result variable with the values in each node.
-                while let Some(ref next_val) = current_link.next {
-                    result += &next_val.val.to_string();
-                    current_link = next_val.clone();
-                }
-            }
-            None => {}
-        };
-
-        // Reverse the result as per the instructions of the problem statement.
-        let reverse_result: String = result.chars().rev().collect();
-
-        // Parse the reversed result as i32 and return it.
-        // TODO : Handle failure case
-        reverse_result.parse::<i64>().expect("A valid number")
-    }
 }
 
 struct Solution {}
 
 impl Solution {
     #[inline]
-    pub fn unwind(arg: Option<Box<ListNode>>) -> i64 {
+    pub fn unwind(arg: Option<Box<ListNode>>) -> u128 {
         // Create a string to store the values of the linked list
         let mut result: String = String::from("");
 
@@ -75,7 +45,7 @@ impl Solution {
 
         // Parse the reversed result as i32 and return it.
         // TODO : Handle failure case
-        reverse_result.parse::<i64>().expect("A valid number")
+        reverse_result.parse::<u128>().expect("A valid number")
     }
 
     pub fn add_two_numbers(
@@ -85,8 +55,8 @@ impl Solution {
         /*
          * We are going to store the l1 and l2 numbers in these variables
          */
-        let l1: i64 = ListNode::unwind(l1);
-        let l2: i64 = ListNode::unwind(l2);
+        let l1: u128 = Solution::unwind(l1);
+        let l2: u128 = Solution::unwind(l2);
 
         let sum = l1 + l2;
 
