@@ -1,5 +1,5 @@
 mod solutions;
 
 fn main() {
-    println!("Run `cargo test` to test the solutions.")
+    println!("Run `cargo test [mod name]` to test the solutions.")
 }
