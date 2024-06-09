@@ -6,36 +6,44 @@ struct Solution {}
 
 impl Solution {
     pub fn can_place_flowers(flowerbed: Vec<i32>, n: i32) -> bool {
-        let mut mutable_flowerbed = flowerbed;
-        let mut flowers_planted = 0;
-
-        if mutable_flowerbed.len() == 0 && n == 0 {
+        if n == 0 {
             return true;
         }
 
-        if mutable_flowerbed.len() == 1 && mutable_flowerbed[0] == 0 {
+        if flowerbed.len() == 1 && flowerbed[0] == 0 {
             return true;
         }
 
-        for (i, _) in mutable_flowerbed.clone().into_iter().enumerate() {
-            if i == 0 && mutable_flowerbed[i] == 0 {
-                if mutable_flowerbed[i + 1] == 0 {
-                    mutable_flowerbed[i] = 1;
-                    flowers_planted += 1;
+        let mut flowers_planted = vec![];
+
+        for (i, value) in flowerbed.iter().enumerate() {
+            if i == 0 && *value == 0 {
+                if flowerbed[i + 1] == 0 {
+                    flowers_planted.push(i);
                 }
-            } else if i == mutable_flowerbed.len() - 1 && mutable_flowerbed[i] == 0 {
-                if mutable_flowerbed[i - 1] == 0 {
-                    mutable_flowerbed[i] = 1;
-                    flowers_planted += 1;
+            } else if i == flowerbed.len() - 1 && *value == 0 {
+                if flowerbed[i - 1] == 0 {
+                    if flowers_planted.len() > 0 {
+                        if flowers_planted[flowers_planted.len() - 1] != i - 1 {
+                            flowers_planted.push(i);
+                        }
+                    } else {
+                        flowers_planted.push(i);
+                    }
                 }
-            } else if mutable_flowerbed[i] == 0 {
-                if mutable_flowerbed[i - 1] == 0 && mutable_flowerbed[i + 1] == 0 {
-                    mutable_flowerbed[i] = 1;
-                    flowers_planted += 1;
+            } else if flowerbed[i] == 0 {
+                if flowerbed[i - 1] == 0 && flowerbed[i + 1] == 0 {
+                    if flowers_planted.len() > 0 {
+                        if flowers_planted[flowers_planted.len() - 1] != i - 1 {
+                            flowers_planted.push(i);
+                        }
+                    } else {
+                        flowers_planted.push(i);
+                    }
                 }
             }
 
-            if flowers_planted >= n {
+            if (flowers_planted.len() as i32) == n {
                 return true;
             }
         }
@@ -120,5 +128,12 @@ mod tests {
         ];
         let n = 162;
         assert_eq!(Solution::can_place_flowers(flowerbed, n), false);
+    }
+
+    #[test]
+    fn test_case_8() {
+        let flowerbed = vec![0, 0, 0, 0, 0, 1, 0, 0];
+        let n = 0;
+        assert_eq!(Solution::can_place_flowers(flowerbed, n), true);
     }
 }
