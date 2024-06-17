@@ -6,4 +6,5 @@ mod longest_substring;
 mod median_of_two_sorted_arrays;
 mod merge_strings_alternately;
 mod reverse_vowels_of_a_string;
+mod reverse_words_in_a_string;
 mod two_sum;
